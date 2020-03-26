@@ -1,4 +1,5 @@
 import os.path
+import pathlib
 
 GEAR_TYPE = {
     "green-armor" : "/green-armor",
@@ -36,7 +37,7 @@ ENHANCEMENT_LEVEL = {
     "PEN" : "PEN",
 }
 
-ENHANCE_TABLES_PATH = os.path.join("data", "enhance-tables.h5")
+ENHANCE_TABLES_PATH = pathlib.Path(pathlib.Path(__file__).parent.parent.parent, "data", "enhance-tables.h5")
 
 BLACK_STONE_ARMOR_PRICE = 2.00e5
 BLACK_STONE_WEAPON_PRICE = 2.00e5

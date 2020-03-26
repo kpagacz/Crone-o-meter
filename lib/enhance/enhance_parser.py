@@ -1,9 +1,11 @@
 """
 Usage:
-    crone enhance [options] [--prob | --cost] [--fail-stacks <stacks>] [--strategy <strategy>] <gear-type> <goal-enhancement-level> <base-cost>
+    crone enhance [options] [--prob | --cost] [--fail-stacks <stacks>] [--strategy <strategy>] <gear-type> <goal-enhancement-level>
     crone enhance [options] --fs <fail-stack-number>
+    crone enhance --cost --verbose <gear-type> <goal-enhancement-level> <base-cost> <current-level-cost>
+    crone enhance --cost --fail-stacks <stacks> <gear-type> <goal-enhancement-level> <base-cost> <current-level-cost>
 
-Displays the optimal
+Displays the optimal # TO-DO (konrad.pagacz@gmail.com) finish this docstring
 
 Generic options:
     -h, --help          Display this help page
@@ -40,6 +42,9 @@ Positional arguments:
                         Goal to which enhance. Can be one of the following:
                             [1 - 15] PRI DUO TRI TET PEN
     <base-cost>         Base cost of the item at +0
+    <current-level-cost>
+                        Cost of the gear on the current level of enhancement - needs to be one lower
+                            than the goal level
 
 """
 import pandas as pd
@@ -49,18 +54,25 @@ import lib.enhance.enhance
 import lib.enhance.strategy
 
 def main(**kwargs):
+    # Variables assignment
     verbose = kwargs["--verbose"]
     prob = kwargs["--prob"]
     cost = kwargs["--cost"]
-    fail_stacks = int(kwargs["--fail-stacks"])
+    if kwargs["--fail-stacks"] is not None:
+        fail_stacks = int(kwargs["--fail-stacks"])
     strategy = kwargs["--strategy"]
     gear_type = kwargs["<gear-type>"]
     goal = kwargs["<goal-enhancement-level>"]
-    base_cost = int(kwargs["<base-cost>"])
+    if kwargs["<base-cost>"] is not None:
+        base_cost = int(kwargs["<base-cost>"])
+    if kwargs["<current-level-cost>"] is not None:
+        current_level_cost = int(kwargs["<current-level-cost>"])
+
+    # Probability pipeline
     if prob:
-        # Output only chance
+        # Probability output
         enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
-                                                goal_level=goal, base_cost=base_cost, failstack=fail_stacks)
+                                                goal_level=goal)
         if verbose:
             result = enhancer._enhancer._enhance_chance_all_failstacks(gear_type=gear_type, gear_goal_level=goal)
             pd.set_option('display.max_rows', result.shape[0] + 1)
@@ -69,20 +81,38 @@ def main(**kwargs):
             print(enhancer.enhance_chance())
         exit()
 
+    # Cost pipeline
+    if kwargs["<current-level-cost>"] is not None:
+        # Single enhancement case
+        enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
+            goal_level=goal, base_cost=base_cost, current_level_cost=current_level_cost, failstack=fail_stacks)
+
+        if verbose:
+            result = (enhancer._enhancer.single_enhancement_cost(gear_type=gear_type, gear_goal_level=goal,
+                base_cost=base_cost, current_level_cost=current_level_cost, verbose=verbose))
+            pd.set_option("display.max_rows", result.shape[0] + 1)
+            print(result)
+        else:
+            print(enhancer.single_enhancement())
+        exit()
+
+
     if cost:
         # Cost output
         enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
                                                 goal_level=goal, base_cost=base_cost, failstack=fail_stacks)
         if verbose:
-            result = enhancer._enhancer._enhance_cost_all_failstacks(gear_type=gear_type, gear_goal_level=goal)
+            result = enhancer._enhancer._enhance_cost_all_failstacks(gear_type=gear_type, gear_goal_level=goal, base_cost=base_cost)
             pd.set_option("display.max_rows", result.shape[0] + 1)
             print(result)
         else:
-            print(enhancer.enhance_cost())
+            print(enhancer.enhance_cost()) 
+        exit()
 
+    # Cost of buidling failstacks pipeline
     if kwargs["--fs"]:
         # Output only failstack building cost
-        print(lib.enhance.strategy.Reblath14().fs_cost(int(kwargs["<fail-stack-number>"])))
+        print(lib.enhance.strategy.Reblath14().fs_cost(int(kwargs["--fs"])))
         exit()
 
 
