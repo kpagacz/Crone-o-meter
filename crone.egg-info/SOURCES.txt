@@ -1,0 +1,8 @@
+README.md
+setup.py
+crone.egg-info/PKG-INFO
+crone.egg-info/SOURCES.txt
+crone.egg-info/dependency_links.txt
+crone.egg-info/entry_points.txt
+crone.egg-info/requires.txt
+crone.egg-info/top_level.txt

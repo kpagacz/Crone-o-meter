@@ -2,7 +2,3 @@
 This module is responsible for calculations of enhancement cost.
 
 """
-
-
-
-
