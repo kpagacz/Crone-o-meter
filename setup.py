@@ -14,5 +14,6 @@ setup(
         "pandas",
         "numpy",
         "tables",
+        "logging",
     ]
 )
