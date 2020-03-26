@@ -13,6 +13,6 @@ setup(
         "docopt",
         "pandas",
         "numpy",
-        "tables"
+        "tables",
     ]
 )
