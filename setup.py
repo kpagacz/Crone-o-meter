@@ -12,6 +12,7 @@ setup(
     install_requires=[
         "docopt",
         "pandas",
-        "numpy"
+        "numpy",
+        "tables"
     ]
 )
