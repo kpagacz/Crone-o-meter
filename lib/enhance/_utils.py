@@ -2,16 +2,26 @@ import os.path
 import pathlib
 
 GEAR_TYPE = {
-    "green-armor" : "/green-armor",
-    "blue-bound-acc" : "/blue-bound-acc",
-    "gold-blue-acc" : "/gold-blue-acc",
-    "green-acc" : "/green-acc",
-    "green-weapon" : "/green-weapon",
-    "life-acc" : "/life-acc",
-    "life-clothes" : "/life-clothes",
-    "silver-clothes" : "/silver-clothes",
-    "white-blue-yellow-armor" : "/white-blue-yellow-armor",
-    "white-blue-yellow-weapon-life-tool" : "/white-blue-yellow-weapon-life-tool"
+    "gold-acc" : "gold-blue-acc",
+    "blue-acc" : "gold-blue-acc",
+    "bound-acc" : "blue-cound-acc",
+    "white-armor" : "white-blue-yellow-armor",
+    "blue-armor" : "white-blue-yellow-armor",
+    "yellow-armor" : "white-blue-yellow-armor",
+    "white-weapon" : "white-blue-yellow-weapon-life-tool",
+    "blue-weapon" : "white-blue-yellow-weapon-life-tool",
+    "yellow-weapon" : "white-blue-yellow-weapon-life-tool",
+    "life-tool" : "white-blue-yellow-weapon-life-tool",
+    "green-armor" : "green-armor",
+    "blue-bound-acc" : "blue-bound-acc",
+    "gold-blue-acc" : "gold-blue-acc",
+    "green-acc" : "green-acc",
+    "green-weapon" : "green-weapon",
+    "life-acc" : "life-acc",
+    "life-clothes" : "life-clothes",
+    "silver-clothes" : "silver-clothes",
+    "white-blue-yellow-armor" : "white-blue-yellow-armor",
+    "white-blue-yellow-weapon-life-tool" : "white-blue-yellow-weapon-life-tool"
 }
 
 ENHANCEMENT_LEVEL = {
@@ -45,5 +55,6 @@ CONCENT_ARMOR_PRICE = 2e6
 CONCENT_WEAPON_PRICE = 2e6
 BLACK_GEM_PRICE = 1.4e6
 CONCENT_BLACK_GEM_PRICE = 1.4e7
+MEMORY_FRAGMENT = 1.3e6
 
 REBLATH_FAILSTACK_COSTS_TABLE_KEY = "reblathfscosts"

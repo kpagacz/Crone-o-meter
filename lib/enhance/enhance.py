@@ -1,4 +1,5 @@
-import pandas as pd 
+import pandas as pd
+import numpy as np
 
 import lib.enhance.strategy
 from lib.enhance._utils import ENHANCE_TABLES_PATH
@@ -9,6 +10,7 @@ from lib.enhance._utils import BLACK_GEM_PRICE
 from lib.enhance._utils import CONCENT_ARMOR_PRICE
 from lib.enhance._utils import CONCENT_WEAPON_PRICE
 from lib.enhance._utils import BLACK_STONE_WEAPON_PRICE
+from lib.enhance._utils import MEMORY_FRAGMENT_PRICE
 
 
 STRATEGIES = {
@@ -92,6 +94,14 @@ class AccEnhancer(ItemEnhancer):
             "TET" : 0,
             "PEN" : 0,
         }
+        self._enhancement_min_index_dict = {
+            0 : 0,
+            "PRI" : 0,
+            "DUO" : 0,
+            "TRI" : 0,
+            "TET" : 0,
+            "PEN" : 0,         
+        }
         self._enhancement_cost_df = pd.DataFrame()
     
     def enhance_cost(self, gear_type : str, gear_goal_level : str, base_cost : int, failstack : int = 0) -> tuple:
@@ -143,6 +153,7 @@ class AccEnhancer(ItemEnhancer):
 
             # Finding out the minimal price for a _level enhancement level
             self._enhancement_cost_dict[_level] = min(total_cost)
+            self._enhancement_min_index_dict[_level] = np.argmin(total_cost)
 
             # Early stopping - there is no need to fill the whole _enhancement_cost_dict, just up to the point
             # required by function arguments
@@ -183,17 +194,149 @@ class AccEnhancer(ItemEnhancer):
 
 
 class WeaponEnhancer(ItemEnhancer):
-    def __init__(self, strategy : str) -> None:
-        super(WeaponEnhancer, self).__init__(strategy)  
 
-    def enhance_cost(self, gear_type : str, gear_goal_level : str, base_cost : int, failstack : int = 0) -> float:
-        print(failstack)
+    def __init__(self, strategy : str) -> None:
+        """Deal with enhancing chance and cost calculations of accessories
+        
+        Attributes:
+            self._enhancement_levels: list with possible accessory enhancement levels
+            self._enhancement_cost_dict: dictionary with minimum average cost required to enhance to particular level
+            self._enhancement_cost_df: pandas.DataFrame with average cost of enhancing item
+
+        """
+        super(WeaponEnhancer, self).__init__(strategy)  
+        self._enhancement_levels = [0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11, 12, 
+            13, 14, 15, "PRI", "DUO", "TRI", "TET", "PEN"]
+        self._enhancement_cost_dict = {
+            0 : 0,
+            1 : 0,
+            2 : 0,
+            3 : 0,
+            4 : 0,
+            5 : 0,
+            6 : 0,
+            7 : 0,
+            8 : 0,
+            9 : 0,
+            10 : 0,
+            11 : 0,
+            12 : 0,
+            13 : 0,
+            14 : 0,
+            15 : 0,
+            "PRI" : 0,
+            "DUO" : 0,
+            "TRI" : 0,
+            "TET" : 0,
+            "PEN" : 0,
+        }
+        self._enhancement_cost_df = pd.DataFrame()
+
+    def enhance_cost(self, gear_type : str, gear_goal_level : str, base_cost : int, failstack : int = 0) -> tuple:
+        """Returns cost of self-enhancing an accessory to 'gear_goal_level' of enhancement.
+
+        Assumes self-enhancing according to the provided strategy from the base enhancement level
+        up to the enhancement level provided in 'gear_goal_level'.
+
+        Args:
+            gear_type: type of the gear
+            gear_goal_level: level of enhancement desired
+            base_cost: price of weapon at +0 enhancement level
+            failstack: number of current failstacks [default: 0]
+
+        Returns:
+            Tuple
+            [0]: number of failstacks at which enhancement is least expensive
+            [1]: number of silvers needed to enhance
+        
+        """      
+        # Argument check
+        if (gear_goal_level not in "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 PRI DUO TRI TET PEN".split()):
+            raise ValueError("Gear goal level should be 1-15 | PRI | DUO | TRI | TET | PEN for weapons.")
+
+        failstack = int(failstack)
+        if (failstack < 0):
+            raise ValueError("Failstack number must be non-negative.")
+        
+        # Base cost assignment
+        self._enhancement_cost_dict[0] = base_cost
+
+        # Flaggin for repairs using base cost or memory fragments
+        # memory fragments repair durability by:
+        # 10 on white weapons
+        # 5 on green weapons
+        # 2 on blue weapons
+        # 1 on yellow weapons (boss weapons)
+        memory_durability_multiplier_dict = {
+            "white-weapon" : 10,
+            "green-weapon" : 5,
+            "blue-weapon" : 2,
+            "yellow-weapon" : 1
+        }
+        memory_repair_multiplier = memory_durability_multiplier_dict[gear_type]
+
+        if base_cost > 10 / memory_repair_multiplier * MEMORY_FRAGMENT_PRICE:
+            use_fragments_on_repair = True
+        else :
+            use_fragments_on_repair = False
+
+        # Calculations loop
+        # Each iteration it calculates the cost of enhancing in the range of possible failstack number
+        # Each iteration represents a single enhancement level
+        # Each iteration it finds the lowest price, considering failstack building cost, base cost
+        #   and cost of the already enhanced accessory
+        
+        failstack_cost = self._strategy._all_failstack_price()
+
+        for _index, _level in enumerate(self._enhancement_levels[1:]):
+            # enhancement_chance_slice contains a column of enhancement probabilities for the accessory
+            enhancement_chance_slice = self._enhance_chance_all_failstacks(gear_type=gear_type, gear_goal_level=_level)
+
+            # total cost = (failstack building cost + appropriate gem cost + repair cost + 
+            #   cost of enhancing to current level if appropriate) / number of times needed to average one success
+            total_cost = (failstack_cost + self._enhancement_cost_dict[self._enhancement_levels[_index]]
+                             + self._enhancement_cost_dict[0]) / enhancement_chance_slice
+            self._enhancement_cost_df[_level] = total_cost
+
+            # Finding out the minimal price for a _level enhancement level
+            self._enhancement_cost_dict[_level] = min(total_cost)
+
+            # Early stopping - there is no need to fill the whole _enhancement_cost_dict, just up to the point
+            # required by function arguments
+            if(_level == gear_goal_level):
+                return self._enhancement_cost_dict[_level] # TO-DO (konrad.pagacz@gmail.com) make this a tuple according to the docstring
 
     def _enhance_cost_all_failstacks(self, gear_type : str, gear_goal_level : str, base_cost : int, failstack : int = 0) -> pd.DataFrame:
-        print(failstack)
+        """Returns cost of enhancing for all failstacks number and all enhancement levels 
 
-    def single_enhancement_cost(self, gear_type : str, gear_goal_level : str, base_cost : int, current_level_cost : int, failstack : int = 0) -> float:
-        print(failstack)
+        Args:
+            gear_type: type of gear
+            gear_goal_level: target enhancement level of the equipment
+            base_cost: price of the +0 item
+            failstack: number of failstack
+
+        Returns:
+            pandas.DataFrame with enhancement costs. Rows contain failstack numbers and columns are enhancement levels.
+            Each cell contains cost of enhancing the equipment to the next enhancement level at a given failstack number.
+        """
+        self.enhance_cost(gear_type=gear_type, gear_goal_level=gear_goal_level, base_cost=base_cost)
+        return self._enhancement_cost_df[gear_goal_level]
+
+    def single_enhancement_cost(self, gear_type : str, gear_goal_level : str, base_cost : int, current_level_cost : int, failstack : int = 0, verbose=False) -> float:
+        """Returns cost of enhancing gear in a scenario of a single enhancement.
+
+        Assumes the gear has a price of 'current_level_cost' and is enhanced to the 'gear_goal_level' using
+        'failstack' number of failstacks.
+
+        Returns:
+            Estimated cost of enhancement.
+        """
+        if verbose:
+            enhancement_probability = self._enhance_chance_all_failstacks(gear_type=gear_type, gear_goal_level=gear_goal_level)
+        else:
+            enhancement_probability = self.enhance_chance(gear_type=gear_type, gear_goal_level=gear_goal_level, failstack=failstack)
+
+        return (current_level_cost + base_cost) / enhancement_probability
 
 
 class ArmorEnhancer(ItemEnhancer):
@@ -218,7 +361,7 @@ class Enhancer(object):
 
     """
     def __init__(self, strategy : str, gear_type : str, goal_level : str, base_cost : int = None, current_level_cost : int = None, failstack : int = 0) -> None:
-        self._gear_type = gear_type
+        self._gear_type = GEAR_TYPE[gear_type]
         self._goal_level = goal_level
         self._failstack = failstack
         self._strategy = strategy
@@ -229,7 +372,9 @@ class Enhancer(object):
             "gold-blue-acc" : AccEnhancer,
             "white-blue-yellow-weapon-life-tool" : WeaponEnhancer,
             "green-armor" : ArmorEnhancer,
+            "white-blue-yellow-armor" : ArmorEnhancer,
             "silver-clothes" : AccEnhancer,
+            "green-weapon" : WeaponEnhancer,
         }
         self._enhancer = self._ENHANCERS[self._gear_type](self._strategy)
 

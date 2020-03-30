@@ -1,9 +1,7 @@
 """
 Usage:
-    crone enhance [options] [--prob | --cost] [--fail-stacks <stacks>] [--strategy <strategy>] <gear-type> <goal-enhancement-level>
-    crone enhance [options] --fs <fail-stack-number>
-    crone enhance --cost --verbose <gear-type> <goal-enhancement-level> <base-cost> <current-level-cost>
-    crone enhance --cost --fail-stacks <stacks> <gear-type> <goal-enhancement-level> <base-cost> <current-level-cost>
+    crone enhance [options] [--prob | --cost] [--strategy <strategy>] <gear-type> <goal-enhancement-level> [<base-cost>] [<current-level-cost>]
+    crone enhance [--strategy <strategy>] --stack-cost <fail-stack-number>
 
 Displays the optimal # TO-DO (konrad.pagacz@gmail.com) finish this docstring
 
@@ -21,23 +19,30 @@ Specific options:
                         Specify the desired fail stacking strategy [default: reblath]
                             Possible values:
                                 reblath         Using only +14 Reblath armor piece to failstack
-    --fs <fail-stack-number>
+    -i, --stack-cost <fail-stack-number>
                         Displays the cost of making a single stack given the number of failstacks
                             instead of calculating item cost.
 
 Positional arguments:
     <gear-type>         Type of gear to enhance. Can be one of the following:
-                            blue-bound-acc
+                            blue-acc
+                            bound-acc
                             blue-ship-part
-                            gold-blue-acc
+                            gold-acc
+                            blue-acc
                             green-acc
                             green-armor
                             green-weapon
                             life-acc
                             life-clothes
                             silver-clothes
-                            white-blue-yellow-armor
-                            white-blue-yellow-weapon-life-tool
+                            white-armor
+                            blue-armor
+                            yellow-amor
+                            white-weapon
+                            blue-weapon
+                            yellow-weapon
+                            life-tool
     <goal-enhancement-level>
                         Goal to which enhance. Can be one of the following:
                             [1 - 15] PRI DUO TRI TET PEN
@@ -82,23 +87,22 @@ def main(**kwargs):
         exit()
 
     # Cost pipeline
-    if kwargs["<current-level-cost>"] is not None:
-        # Single enhancement case
-        enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
-            goal_level=goal, base_cost=base_cost, current_level_cost=current_level_cost, failstack=fail_stacks)
-
-        if verbose:
-            result = (enhancer._enhancer.single_enhancement_cost(gear_type=gear_type, gear_goal_level=goal,
-                base_cost=base_cost, current_level_cost=current_level_cost, verbose=verbose))
-            pd.set_option("display.max_rows", result.shape[0] + 1)
-            print(result)
-        else:
-            print(enhancer.single_enhancement())
-        exit()
-
-
     if cost:
-        # Cost output
+        # Single enhancement case
+        if kwargs["<current-level-cost>"] is not None:
+            enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
+                goal_level=goal, base_cost=base_cost, current_level_cost=current_level_cost, failstack=fail_stacks)
+
+            if verbose:
+                result = (enhancer._enhancer.single_enhancement_cost(gear_type=gear_type, gear_goal_level=goal,
+                    base_cost=base_cost, current_level_cost=current_level_cost, verbose=verbose))
+                pd.set_option("display.max_rows", result.shape[0] + 1)
+                print(result)
+            else:
+                print(enhancer.single_enhancement())
+            exit()
+        
+        # Cost tables
         enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
                                                 goal_level=goal, base_cost=base_cost, failstack=fail_stacks)
         if verbose:
@@ -110,9 +114,9 @@ def main(**kwargs):
         exit()
 
     # Cost of buidling failstacks pipeline
-    if kwargs["--fs"]:
+    if kwargs["--stack-cost"]:
         # Output only failstack building cost
-        print(lib.enhance.strategy.Reblath14().fs_cost(int(kwargs["--fs"])))
+        print(lib.enhance.strategy.Reblath14().fs_cost(int(kwargs["--stack-cost"])))
         exit()
 
 
