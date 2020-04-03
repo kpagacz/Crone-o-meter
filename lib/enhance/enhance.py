@@ -158,7 +158,7 @@ class AccEnhancer(ItemEnhancer):
             # Early stopping - there is no need to fill the whole _enhancement_cost_dict, just up to the point
             # required by function arguments
             if(_level == gear_goal_level):
-                return self._enhancement_cost_dict[_level] # TO-DO (konrad.pagacz@gmail.com) make this a tuple according to the docstring
+                return self._enhancement_min_index_dict[_level], self._enhancement_cost_dict[_level]
 
     def _enhance_cost_all_failstacks(self, gear_type : str, gear_goal_level : str, base_cost : int, failstack : int = 0) -> pd.DataFrame:
         """Returns cost of enhancing for all failstacks number and all enhancement levels 

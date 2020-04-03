@@ -110,7 +110,8 @@ def main(**kwargs):
             pd.set_option("display.max_rows", result.shape[0] + 1)
             print(result)
         else:
-            print(enhancer.enhance_cost()) 
+            out = enhancer.enhance_cost()
+            print("Total cost: {} \nEnhance on {} fs.".format(out[1], out[0]))
         exit()
 
     # Cost of buidling failstacks pipeline
