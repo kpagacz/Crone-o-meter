@@ -77,7 +77,7 @@ def main(**kwargs):
     if prob:
         # Probability output
         enhancer = lib.enhance.enhance.Enhancer(strategy=strategy, gear_type=gear_type, 
-                                                goal_level=goal)
+                                                goal_level=goal, failstack=fail_stacks)
         if verbose:
             result = enhancer._enhancer._enhance_chance_all_failstacks(gear_type=gear_type, gear_goal_level=goal)
             pd.set_option('display.max_rows', result.shape[0] + 1)

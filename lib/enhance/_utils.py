@@ -48,6 +48,7 @@ ENHANCEMENT_LEVEL = {
 }
 
 ENHANCE_TABLES_PATH = pathlib.Path(pathlib.Path(__file__).parent.parent.parent, "data", "enhance-tables.h5")
+MEAN_CLICKS_TABLES_PATH = pathlib.Path(pathlib.Path(__file__).parent.parent.parent, "data", "mean-clicks-tables.h5")
 
 BLACK_STONE_ARMOR_PRICE = 2.00e5
 BLACK_STONE_WEAPON_PRICE = 2.00e5
