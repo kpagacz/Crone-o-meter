@@ -12,9 +12,13 @@ Crone-o-meter requires a Python 3.6.5 installation and internet access.
 2. Navigate to the folder containing the files.
 3. Open terminal (cmd.exe or your favourite command line tool).
 4. Input:
+```bash
     pip install setup.py
+```
 5. You are ready to go.
 
 ## Usage
 To enquire about the usage input following into the command line:
+```bash
     crone --help
+```
